@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ======================================================
+// 1. USUARIO (G4 - Base para Admin, Aluno e Instrutor)
+// ======================================================
+model Usuario {
+  usuario_id           Int       @id @default(autoincrement())
+  usuario_nome         String    @db.VarChar(100)
+  usuario_cpf          String    @unique @db.Char(11)
+  usuario_email        String    @unique @db.VarChar(150)
+  usuario_senha        String    @db.VarChar(255)
+  usuario_nivel_acesso String    @default("aluno") @db.VarChar(30)
+  usuario_telefone     String?   @db.VarChar(15)
+  usuario_foto_perfil  String?   @db.VarChar(255)
+  usuario_criado_em    DateTime? @default(now())
+
+  // Relacionamentos 1:1
+  aluno                Aluno?
+  instrutor            Instrutor?
+
+  @@map("usuario")
+}
+
+// ======================================================
+// 2. ESPECIALIZAÇÕES (Relacionamento 1:1)
+// ======================================================
+model Aluno {
+  aluno_id                   Int       @id
+  aluno_data_nascimento      DateTime  @db.Date
+  aluno_categoria_pretendida String    @db.VarChar(5)
+  aluno_status_aluno         String?   @default("ativo") @db.VarChar(20)
+
+  // Relacionamentos
+  usuario                    Usuario         @relation(fields: [aluno_id], references: [usuario_id], onDelete: Cascade)
+  cursos                     AlunoCurso[]
+  simulados                  AlunoSimulado[]
+
+  @@map("aluno")
+}
+
+model Instrutor {
+  instrutor_id                Int       @id
+  instrutor_numero_credencial String    @unique @db.VarChar(30)
+  instrutor_categoria_cnh     String    @db.VarChar(5)
+  instrutor_valor_aula        Decimal   @db.Decimal(10, 2)
+
+  // Relacionamentos
+  usuario                     Usuario   @relation(fields: [instrutor_id], references: [usuario_id], onDelete: Cascade)
+  veiculos                    Veiculo[]
+
+  @@map("instrutor")
+}
+
+// ======================================================
+// 3. SIMULADO E QUESTÕES (G2)
+// ======================================================
+model Simulado {
+  simulado_id         Int       @id @default(autoincrement())
+  simulado_titulo     String    @db.VarChar(100)
+  simulado_nota_minima Decimal  @db.Decimal(5, 2)
+
+  // Relacionamentos
+  questoes            Questao[]
+  alunos              AlunoSimulado[]
+
+  @@map("simulado")
+}
+
+model Questao {
+  questao_id            Int       @id @default(autoincrement())
+  simulado_id           Int
+  questao_enunciado     String    @db.Text
+  questao_alternativa_a String    @db.Text
+  questao_alternativa_b String    @db.Text
+  questao_alternativa_c String    @db.Text
+  questao_alternativa_d String    @db.Text
+  questao_letra_correta String    @db.Char(1)
+  questao_categoria     String?   @db.VarChar(50)
+
+  // Relacionamento
+  simulado              Simulado  @relation(fields: [simulado_id], references: [simulado_id], onDelete: Cascade)
+
+  @@map("questao")
+}
+
+// ======================================================
+// 4. CURSOS E RELACIONAMENTOS N:N
+// ======================================================
+model Curso {
+  curso_id            Int       @id @default(autoincrement())
+  curso_titulo        String    @db.VarChar(100)
+  curso_carga_horaria Int
+  curso_valor         Decimal?  @db.Decimal(10, 2)
+
+  // Relacionamentos
+  alunos              AlunoCurso[]
+  aulas               Aula[]
+
+  @@map("curso")
+}
+
+model AlunoCurso {
+  aluno_id                   Int
+  curso_id                   Int
+  aluno_curso_data_matricula DateTime? @default(now())
+
+  // Relacionamentos
+  aluno                      Aluno     @relation(fields: [aluno_id], references: [aluno_id])
+  curso                      Curso     @relation(fields: [curso_id], references: [curso_id])
+
+  // Chave primária composta
+  @@id([aluno_id, curso_id])
+  @@map("aluno_curso")
+}
+
+model AlunoSimulado {
+  aluno_id                       Int
+  simulado_id                    Int
+  aluno_simulado_nota_obtida     Decimal?  @db.Decimal(5, 2)
+  aluno_simulado_data_realizacao DateTime? @default(now())
+
+  // Relacionamentos
+  aluno                          Aluno     @relation(fields: [aluno_id], references: [aluno_id])
+  simulado                       Simulado  @relation(fields: [simulado_id], references: [simulado_id])
+
+  // Chave primária composta
+  @@id([aluno_id, simulado_id])
+  @@map("aluno_simulado")
+}
+
+// ======================================================
+// 5. VEÍCULOS E AULAS (G1 e G4)
+// ======================================================
+model Veiculo {
+  veiculo_id           Int       @id @default(autoincrement())
+  instrutor_id         Int
+  veiculo_placa        String    @unique @db.Char(7)
+  veiculo_marca_modelo String?   @db.VarChar(100)
+
+  // Relacionamento
+  instrutor            Instrutor @relation(fields: [instrutor_id], references: [instrutor_id])
+
+  @@map("veiculo")
+}
+
+model Aula {
+  aula_id                    Int       @id @default(autoincrement())
+  curso_id                   Int
+  aula_titulo                String    @db.VarChar(100)
+  aula_descricao             String?   @db.Text
+  aula_ordem                 Int
+  aula_conteudo_texto        String?   @db.Text
+  aula_url_video             String?   @db.VarChar(255)
+  aula_arquivo_slide         String?   @db.VarChar(255)
+  aula_arquivo_pdf           String?   @db.VarChar(255)
+  aula_material_complementar String?   @db.VarChar(255)
+  aula_miniatura             String?   @db.VarChar(255)
+  aula_duracao_minutos       Int?
+  aula_status_aula           String?   @default("publicada") @db.VarChar(20)
+  aula_criado_em             DateTime? @default(now())
+  aula_atualizado_em         DateTime? @default(now()) @updatedAt
+
+  // Relacionamento
+  curso                      Curso     @relation(fields: [curso_id], references: [curso_id], onDelete: Cascade)
+
+  @@map("aula")
+}
