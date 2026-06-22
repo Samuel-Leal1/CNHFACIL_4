@@ -1,0 +1,144 @@
+{
+  "projectName": "CNHFácil",
+  "description": "Monorepo com backend Node.js/Express e frontend React/Vite para um sistema de preparação de CNH.",
+  "rootFiles": [
+    "README.md",
+    "CREDENTIALS.md",
+    "SETUP_LOCAL.md",
+    ".gitignore"
+  ],
+  "directories": [
+    "backend",
+    "frontend"
+  ],
+  "backend": {
+    "path": "backend",
+    "description": "API REST com autenticação JWT, controle de questões, simulados, perfil, aulas e veículos.",
+    "main": "src/index.js",
+    "type": "module",
+    "scripts": {
+      "start": "node src/index.js",
+      "dev": "nodemon src/index.js",
+      "prisma:generate": "prisma generate",
+      "prisma:migrate": "prisma migrate dev",
+      "prisma:seed": "node prisma/seed.js"
+    },
+    "dependencies": {
+      "@prisma/client": "^5.8.0",
+      "bcryptjs": "^2.4.3",
+      "cors": "^2.8.5",
+      "dotenv": "^16.4.5",
+      "express": "^4.19.2",
+      "jsonwebtoken": "^9.0.2",
+      "swagger-jsdoc": "^6.2.8",
+      "swagger-ui-express": "^5.0.0"
+    },
+    "devDependencies": {
+      "nodemon": "^3.1.0",
+      "prisma": "^5.8.0"
+    },
+    "importantFiles": [
+      "src/controllers/autenticacaoController.js",
+      "src/controllers/questoesController.js",
+      "src/controllers/simuladoController.js",
+      "src/controllers/perfilController.js",
+      "src/controllers/veiculoController.js",
+      "src/controllers/aulaController.js",
+      "src/middlewares/autenticacaoMiddleware.js",
+      "src/routes/autenticacaoRoutes.js",
+      "src/routes/questoesRoutes.js",
+      "src/routes/simuladoRoutes.js",
+      "src/routes/perfilRoutes.js",
+      "src/routes/veiculoRoutes.js",
+      "src/routes/aulaRoutes.js",
+      "src/config/swagger.js",
+      "src/dadosMockados.js",
+      "prisma/schema.prisma",
+      "prisma/seed.js"
+    ]
+  },
+  "frontend": {
+    "path": "frontend",
+    "description": "Aplicação web em React usando Vite para consumir a API e exibir páginas de login, dashboard e navegação.",
+    "main": "src/main.jsx",
+    "type": "module",
+    "scripts": {
+      "dev": "vite",
+      "build": "vite build",
+      "preview": "vite preview"
+    },
+    "dependencies": {
+      "@vitejs/plugin-react": "^4.2.0",
+      "axios": "^1.18.0",
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0",
+      "react-router-dom": "^6.22.3",
+      "vite": "^5.2.0"
+    },
+    "importantFiles": [
+      "src/app/App.jsx",
+      "src/app/main.jsx",
+      "src/pages/Login/Login.jsx",
+      "src/pages/Dashboard/Dashboard.jsx",
+      "src/services/api.js",
+      "src/layouts/MainLayout.jsx",
+      "vite.config.js"
+    ]
+  },
+  "setup": {
+    "prerequisites": [
+      "Node.js 16+",
+      "PostgreSQL"
+    ],
+    "backendSteps": [
+      "cd backend",
+      "npm install",
+      "npm run prisma:generate",
+      "npm run prisma:migrate",
+      "npm run prisma:seed",
+      "npm run dev"
+    ],
+    "frontendSteps": [
+      "cd frontend",
+      "npm install",
+      "npm run dev"
+    ]
+  },
+  "environment": {
+    "backend": [
+      "DATABASE_URL",
+      "PORT",
+      "JWT_SECRET"
+    ],
+    "frontend": [
+      "VITE_API_URL"
+    ]
+  },
+  "git": {
+    "remote": "https://github.com/AnaMachado2/CNHFACIL_02.git",
+    "branch": "main",
+    "ignorePatterns": [
+      "node_modules/",
+      ".env",
+      ".env.*",
+      "dist/",
+      "build/",
+      ".vite/",
+      "npm-debug.log*",
+      "yarn-debug.log*",
+      "yarn-error.log*",
+      "pnpm-debug.log*",
+      ".DS_Store",
+      "Thumbs.db",
+      ".vscode/",
+      ".idea/",
+      "*.db",
+      "package-lock.json"
+    ]
+  },
+  "credentials": {
+    "file": "CREDENTIALS.md",
+    "notes": "Contém credenciais de teste para Admin, Professor e Aluno, além de exemplos de variáveis de ambiente."
+  },
+  "notes": "Este arquivo JSON documenta o projeto CNHFácil com informações de estrutura, dependências, scripts e configurações." 
+}

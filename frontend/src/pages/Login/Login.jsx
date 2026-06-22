@@ -1,82 +1,82 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../../services/api';
-import Button from '../../components/ui/Button.jsx';
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
+import { login as apiLogin } from '../../services/api'
 
-function Login() {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [erro, setErro] = useState('');
-  const [carregando, setCarregando] = useState(false);
+export default function Login() {
+  const [email, setEmail] = useState('')
+  const [senha, setSenha] = useState('')
+  const [erro, setErro] = useState('')
+  const [loading, setLoading] = useState(false)
+  const { login } = useAuth()
+  const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErro('');
-    setCarregando(true);
-
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setErro('')
+    setLoading(true)
     try {
-      const response = await api.post('/auth/login', {
-        email,
-        senha,
-      });
-
-      const { token, usuario } = response.data;
-
-      // Salvar token e dados do usuário
-      localStorage.setItem('token', token);
-      localStorage.setItem('usuario', JSON.stringify(usuario));
-
-      // Redirecionar para dashboard
-      navigate('/dashboard');
+      const res = await apiLogin(email, senha)
+      const { token, usuario } = res.data
+      login(usuario, token)
+      navigate('/inicio')
     } catch (err) {
-      setErro(err.response?.data?.erro || 'Erro ao fazer login. Tente novamente.');
-      console.error('Erro no login:', err);
+      setErro(err.response?.data?.mensagem || 'Email ou senha inválidos.')
     } finally {
-      setCarregando(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <main className="auth-page">
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <div>
-          <p className="eyebrow">Acesso</p>
-          <h1>Entrar</h1>
+    <div className="auth-bg">
+      <div className="auth-card">
+        <div className="auth-logo">
+          <div style={{ fontSize: 36 }}>🚗</div>
+          <div className="auth-logo-text"><span>CNH</span> <em>Fácil</em></div>
         </div>
+        <p className="auth-subtitle">Olá, futuro motorista!</p>
 
-        {erro && <div className="erro-message" style={{ color: 'red', marginBottom: '1rem' }}>{erro}</div>}
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>E-mail</label>
+            <input
+              className="form-control"
+              type="email"
+              placeholder="Digite seu e-mail"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-        <label>
-          Email
-          <input 
-            type="email" 
-            name="email" 
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </label>
+          <div className="form-group">
+            <div className="form-group-header">
+              <label>Senha</label>
+              <a href="#">Esqueceu a senha?</a>
+            </div>
+            <input
+              className="form-control"
+              type="password"
+              placeholder="Digite sua senha"
+              value={senha}
+              onChange={e => setSenha(e.target.value)}
+              required
+            />
+          </div>
 
-        <label>
-          Senha
-          <input 
-            type="password" 
-            name="password" 
-            autoComplete="current-password"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            required
-          />
-        </label>
+          {erro && (
+            <p style={{ color: '#dc2626', fontSize: 13, textAlign: 'center' }}>{erro}</p>
+          )}
 
-        <Button type="submit" disabled={carregando}>
-          {carregando ? 'Entrando...' : 'Entrar'}
-        </Button>
-      </form>
-    </main>
-  );
+          <button className="btn-primary" type="submit" disabled={loading}>
+            {loading ? 'Entrando...' : 'Entrar no Sistema'}
+          </button>
+        </form>
+
+        <div className="auth-footer">
+          Ainda não é aluno? <Link to="/cadastro">Cadastre-se aqui</Link>
+        </div>
+      </div>
+    </div>
+  )
 }
-
-export default Login;

@@ -1,26 +1,45 @@
+import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-    await prisma.usuario.createMany({
-        data: [
-            {
-                usuario_nome: 'Aluno Exemplo',
-                usuario_cpf: '12345678901',
-                usuario_email: 'aluno@exemplo.com',
-                usuario_senha: 'senha123',
-                usuario_nivel_acesso: 'aluno',
-            },
-            {
-                usuario_nome: 'Admin Exemplo',
-                usuario_cpf: '10987654321',
-                usuario_email: 'admin@exemplo.com',
-                usuario_senha: 'senha123',
-                usuario_nivel_acesso: 'admin',
-            },
-        ],
-        skipDuplicates: true,
+    const salt = await bcrypt.genSalt(10);
+    const senhaHashAdmin = await bcrypt.hash('admin123', salt);
+    const senhaHashAluno = await bcrypt.hash('aluno123', salt);
+
+    await prisma.usuario.upsert({
+        where: { usuario_email: 'admin@cnhfacil.com' },
+        update: {
+            usuario_nome: 'Administrador CNHFácil',
+            usuario_cpf: '00000000001',
+            usuario_senha: senhaHashAdmin,
+            usuario_nivel_acesso: 'admin',
+        },
+        create: {
+            usuario_nome: 'Administrador CNHFácil',
+            usuario_cpf: '00000000001',
+            usuario_email: 'admin@cnhfacil.com',
+            usuario_senha: senhaHashAdmin,
+            usuario_nivel_acesso: 'admin',
+        },
+    });
+
+    await prisma.usuario.upsert({
+        where: { usuario_email: 'aluno@cnhfacil.com' },
+        update: {
+            usuario_nome: 'Aluno CNHFácil',
+            usuario_cpf: '00000000002',
+            usuario_senha: senhaHashAluno,
+            usuario_nivel_acesso: 'aluno',
+        },
+        create: {
+            usuario_nome: 'Aluno CNHFácil',
+            usuario_cpf: '00000000002',
+            usuario_email: 'aluno@cnhfacil.com',
+            usuario_senha: senhaHashAluno,
+            usuario_nivel_acesso: 'aluno',
+        },
     });
 }
 
