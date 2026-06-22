@@ -24,7 +24,7 @@ export default function Cadastro() {
       await cadastrar({ nome: form.nome, cpf: form.cpf, email: form.email, senha: form.senha })
       navigate('/login')
     } catch (err) {
-      setErro(err.response?.data?.mensagem || 'Erro ao realizar cadastro.')
+      setErro(err.response?.data?.erro || err.response?.data?.mensagem || 'Erro ao realizar cadastro.')
     } finally {
       setLoading(false)
     }

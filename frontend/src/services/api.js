@@ -30,7 +30,7 @@ export const login = (email, senha) =>
   api.post('/auth/login', { email, senha })
 
 export const cadastrar = (dados) =>
-  api.post('/auth/cadastro', dados)
+  api.post('/auth/registro', dados)
 
 // ---- Perfil ----
 export const getPerfil = () =>
