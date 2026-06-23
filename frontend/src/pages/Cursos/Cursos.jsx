@@ -17,8 +17,31 @@ export default function Cursos() {
     // Carrega cursos inicialmente
     getCursos().then(r => setCursos(r.data)).catch(() => {})
 
-    // Ouve evento global disparado quando uma aula é concluída para recarregar progresso
-    const handler = () => { getCursos().then(r => setCursos(r.data)).catch(() => {}) }
+    // Ouve evento global disparado quando uma aula é concluída
+    const handler = (e) => {
+      try {
+        const detail = e?.detail || null
+        if (detail && typeof detail.cursoId === 'number' && detail.concluidasCount != null) {
+          // Atualiza somente o curso afetado para resposta instantânea
+          setCursos(prev => prev.map(c => {
+            if (Number(c.id) === Number(detail.cursoId)) {
+              const total = Number(c.totalAulas) || 1
+              const aulas = Number(detail.concluidasCount)
+              const progresso = total > 0 ? Math.round((aulas / total) * 100) : 0
+              return { ...c, aulas, progresso }
+            }
+            return c
+          }))
+        } else {
+          // fallback: recarrega do backend
+          getCursos().then(r => setCursos(r.data)).catch(() => {})
+        }
+      } catch (err) {
+        console.warn('Erro ao tratar evento aulaConcluida', err)
+        getCursos().then(r => setCursos(r.data)).catch(() => {})
+      }
+    }
+
     window.addEventListener('aulaConcluida', handler)
     return () => window.removeEventListener('aulaConcluida', handler)
   }, [])
