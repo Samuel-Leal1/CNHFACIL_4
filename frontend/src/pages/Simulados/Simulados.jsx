@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Topbar from '../../components/Topbar'
+import { getDesempenho } from '../../services/api'
 
 const MATERIAS = [
   { id: 'legislacao',  nome: 'Legislação de Trânsito', icon: '📋', questoes: 10, progresso: 80 },
@@ -10,8 +11,31 @@ const MATERIAS = [
   { id: 'mecanica',    nome: 'Mecânica Básica',          icon: '🔧', questoes: 10, progresso: 10 },
 ]
 
+const normalizeString = (value) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/[^a-z0-9]/gi, '')
+    .toLowerCase();
+
 export default function Simulados() {
   const navigate = useNavigate()
+  const [materias, setMaterias] = useState(MATERIAS)
+
+  useEffect(() => {
+    getDesempenho()
+      .then(r => {
+        const perf = r.data.desempenhoPorMateria || {}
+        const perfNormalizado = Object.fromEntries(
+          Object.entries(perf).map(([k, v]) => [normalizeString(k), v])
+        )
+        setMaterias(MATERIAS.map(m => ({
+          ...m,
+          progresso: perfNormalizado[normalizeString(m.nome)] ?? m.progresso
+        })))
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <>
@@ -26,7 +50,7 @@ export default function Simulados() {
           </div>
           <button
             className="btn-iniciar"
-            onClick={() => navigate('/questoes?tipo=geral')}
+            onClick={() => navigate('/questoes?materia=geral')}
           >
             INICIAR SIMULADO OFICIAL
           </button>
@@ -35,7 +59,7 @@ export default function Simulados() {
         {/* Matérias */}
         <div className="section-title">Treinar por Matéria Específica</div>
         <div className="materias-grid">
-          {MATERIAS.map(m => (
+          {materias.map(m => (
             <div className="materia-card" key={m.id}>
               <div className="materia-header">
                 <span className="materia-name">{m.nome}</span>

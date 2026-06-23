@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import Topbar from '../../components/Topbar'
-import { getQuestoes, iniciarSimulado, responderQuestao, finalizarSimulado } from '../../services/api'
+import { getQuestoes, iniciarSimulado, finalizarSimulado } from '../../services/api'
 
 const MOCK_QUESTOES = [
   {
@@ -66,11 +66,10 @@ export default function Questoes() {
 
   function selecionar(letra) {
     setRespostas(r => ({ ...r, [q.id]: letra }))
-    if (simuladoId) responderQuestao(simuladoId, q.id, letra).catch(() => {})
   }
 
   async function handleFinalizar() {
-    if (simuladoId) await finalizarSimulado(simuladoId).catch(() => {})
+    if (simuladoId) await finalizarSimulado(simuladoId, respostas).catch(() => {})
     navigate('/desempenho')
   }
 

@@ -24,7 +24,33 @@ export default function Desempenho() {
   const [data, setData] = useState(MOCK)
 
   useEffect(() => {
-    getDesempenho().then(r => setData(r.data)).catch(() => {})
+    getDesempenho().then(r => {
+      const src = r.data || {}
+
+      // Mapeia o formato do backend para o que a UI espera
+      const totalQuestoes = src.questoesRespondidas ?? src.resumo?.questoesRespondidas ?? 0
+      const acertos = src.mediaAcertos ?? src.resumo?.mediaAcertos ?? 0
+      const taxa = typeof src.mediaAcertos === 'number' ? src.mediaAcertos : src.melhorDesempenho ?? 0
+
+      const desempenhoPorMateria = src.desempenhoPorMateria || src.resumo?.desempenhoPorMateria || {}
+      const colorMap = {
+        'Legislação de Trânsito': 'bar-green',
+        'Direção Defensiva': 'bar-navy',
+        'Primeiros Socorros': 'bar-yellow',
+        'Meio Ambiente e Mecânica': 'bar-red'
+      }
+      const topicos = Object.keys(desempenhoPorMateria).length > 0
+        ? Object.entries(desempenhoPorMateria).map(([nome, pct]) => ({ nome, pct, cor: colorMap[nome] || 'bar-navy' }))
+        : (src.topicos || [])
+
+      const hist = src.historico || src.historicoSimulados || []
+      const simulados = hist.slice(-4).map((h, i) => ({
+        label: h.titulo ?? `Sim. ${h.id ?? i+1}`,
+        pct: h.notaPercent ?? h.nota ?? 0
+      }))
+
+      setData({ totalQuestoes, acertos, taxa, topicos, simulados })
+    }).catch(() => {})
   }, [])
 
   return (

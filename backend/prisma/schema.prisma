@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -62,13 +62,13 @@ model Instrutor {
 // 3. SIMULADO E QUESTÕES (G2)
 // ======================================================
 model Simulado {
-  simulado_id         Int       @id @default(autoincrement())
-  simulado_titulo     String
+  simulado_id          Int       @id @default(autoincrement())
+  simulado_titulo      String
   simulado_nota_minima Decimal
 
   // Relacionamentos
-  questoes            Questao[]
-  alunos              AlunoSimulado[]
+  questoes             Questao[]
+  alunos               AlunoSimulado[]
 
   @@map("simulado")
 }

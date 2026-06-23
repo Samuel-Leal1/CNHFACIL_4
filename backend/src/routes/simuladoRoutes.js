@@ -3,11 +3,15 @@ import { gerarSimulado, enviarSimulado } from '../controllers/simuladoController
 
 const router = express.Router();
 
+// -------------------------------------------------------
+// Rotas originais (mantidas para o Swagger)
+// -------------------------------------------------------
+
 /**
  * @swagger
  * /api/simulados/gerar:
  *   post:
- *     summary: Gera um novo simulado personalizado (Geral ou por Matéria)
+ *     summary: Gera um novo simulado personalizado
  *     tags: [Simulados]
  *     requestBody:
  *       required: true
@@ -22,19 +26,13 @@ const router = express.Router();
  *                 example: geral
  *               materia:
  *                 type: string
- *                 description: Se tipo for 'materia', indicar o tema desejado
  *                 example: Legislação de Trânsito
  *               quantidade:
  *                 type: integer
- *                 description: Número de questões no simulado (ex. 10, 30 ou 40)
  *                 example: 10
  *     responses:
  *       200:
- *         description: Simulado gerado com sucesso (as questões retornadas não possuem a resposta correta exposta)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
+ *         description: Simulado gerado com sucesso
  */
 router.post('/gerar', gerarSimulado);
 
@@ -42,7 +40,7 @@ router.post('/gerar', gerarSimulado);
  * @swagger
  * /api/simulados/enviar:
  *   post:
- *     summary: Envia as respostas de um simulado para correção e computação no histórico
+ *     summary: Envia respostas para correção
  *     tags: [Simulados]
  *     requestBody:
  *       required: true
@@ -50,8 +48,6 @@ router.post('/gerar', gerarSimulado);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - respostas
  *             properties:
  *               materia:
  *                 type: string
@@ -60,25 +56,23 @@ router.post('/gerar', gerarSimulado);
  *                 type: array
  *                 items:
  *                   type: object
- *                   required:
- *                     - questionId
- *                     - selectedOption
  *                   properties:
  *                     questionId:
  *                       type: integer
- *                       example: 1
  *                     selectedOption:
  *                       type: integer
- *                       description: Índice selecionado (0 a 3). Usar null se não respondido.
- *                       example: 0
  *     responses:
  *       200:
- *         description: Correção realizada com sucesso, retorna a nota e o gabarito comentado
- *         content:
- *           application/json:
- *             schema:
- *               type: object
+ *         description: Correção realizada com sucesso
  */
 router.post('/enviar', enviarSimulado);
+
+// -------------------------------------------------------
+// Aliases que o frontend utiliza
+// /api/simulados/iniciar   → mesmo que /gerar
+// /api/simulados/finalizar → mesmo que /enviar
+// -------------------------------------------------------
+router.post('/iniciar', gerarSimulado);
+router.post('/finalizar', enviarSimulado);
 
 export default router;

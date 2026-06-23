@@ -33,6 +33,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/questoes', questionRoutes);
 app.use('/api/simulados', simuladoRoutes);
+app.use('/api/simulado', simuladoRoutes);
 app.use('/api/veiculos', veiculoRoutes);
 app.use('/api/aulas', aulaRoutes);
 app.use('/api', perfilRoutes); // Serve /api/perfil e /api/desempenho
