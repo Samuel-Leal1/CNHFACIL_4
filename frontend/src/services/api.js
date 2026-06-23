@@ -44,39 +44,31 @@ export const getDashboard = () =>
   api.get('/perfil/dashboard')
 
 // ---- Cursos / Aulas ----
-// Backend expõe apenas GET /api/aulas que retorna resumo dos módulos.
-// Aqui adaptamos para derivar cursos/aulas do retorno disponível.
+// Usa endpoints do backend para cursos e aulas por curso
 export const getCursos = async () => {
-  const res = await api.get('/aulas')
+  const res = await api.get('/aulas/cursos')
   return {
     ...res,
     data: res.data.map(c => ({
       id: c.id,
-      nome: c.titulo,
-      icon: c.icone || c.icon || '📚',
-      aulas: c.aulasConcluidas ?? c.aulas ?? 0,
-      totalAulas: c.aulasTotais ?? c.totalAulas ?? 5,
+      nome: c.nome || c.titulo,
+      icon: c.icon || c.icone || '📚',
+      aulas: c.aulas ?? c.aulasConcluidas ?? 0,
+      totalAulas: c.totalAulas ?? c.aulasTotais ?? 5,
       progresso: c.progresso ?? 0,
     })),
   }
 }
 
 export const getAulas = async (cursoId) => {
-  const res = await api.get('/aulas')
-  const curso = res.data.find(c => String(c.id) === String(cursoId))
-  const totais = curso?.aulasTotais ?? curso?.totalAulas ?? 5
-  const concluidas = curso?.aulasConcluidas ?? curso?.aulas ?? Math.floor(totais / 2)
-  const aulas = Array.from({ length: totais }).map((_, i) => ({
-    id: i + 1,
-    titulo: `${i + 1}. Aula ${i + 1}`,
-    status: i < concluidas ? 'done' : (i === concluidas ? 'current' : 'locked'),
-  }))
-  return { ...res, data: aulas }
+  const res = await api.get(`/aulas/curso/${cursoId}`)
+  return res
 }
 
-// Conclusão de aula não tem endpoint no backend — simulamos localmente.
+// Conclusão de aula persiste no backend
 export const concluirAula = async (aulaId) => {
-  return Promise.resolve({ data: { ok: true } })
+  const res = await api.post(`/aulas/${aulaId}/concluir`)
+  return res
 }
 
 // ---- Simulados ----
@@ -101,7 +93,7 @@ const mapearQuestoes = (questoes = []) =>
   }))
 
 export const iniciarSimulado = async (tipo, materia) => {
-  const res = await api.post('/simulado/iniciar', { tipo, materia })
+  const res = await api.post('/simulados/iniciar', { tipo, materia })
   return {
     ...res,
     data: {
@@ -123,7 +115,7 @@ export const finalizarSimulado = (simuladoId, respostas = {}) => {
     questionId: Number(questionId),
     selectedOption: ['A','B','C','D'].indexOf(letra),
   }))
-  return api.post('/simulado/finalizar', { respostas: rows })
+  return api.post('/simulados/finalizar', { respostas: rows })
 }
 
 // ---- Desempenho ----
