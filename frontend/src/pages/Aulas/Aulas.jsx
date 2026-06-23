@@ -41,6 +41,13 @@ export default function Aulas() {
       setAtual(abrir || null)
 
       setSalvo(true)
+
+      // Notifica outras partes da UI (Cursos) para recarregar progresso
+      try {
+        const detail = { cursoId: Number(cursoId), concluidasCount: res?.data?.concluidasCount ?? null }
+        window.dispatchEvent(new CustomEvent('aulaConcluida', { detail }))
+      } catch (e) { console.warn('Não foi possível emitir evento de conclusão', e) }
+
       setTimeout(() => setSalvo(false), 2000)
     } catch (err) {
       console.error('Erro ao concluir aula', err)

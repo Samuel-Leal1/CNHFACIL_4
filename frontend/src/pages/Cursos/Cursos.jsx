@@ -14,7 +14,13 @@ export default function Cursos() {
   const navigate = useNavigate()
 
   useEffect(() => {
+    // Carrega cursos inicialmente
     getCursos().then(r => setCursos(r.data)).catch(() => {})
+
+    // Ouve evento global disparado quando uma aula é concluída para recarregar progresso
+    const handler = () => { getCursos().then(r => setCursos(r.data)).catch(() => {}) }
+    window.addEventListener('aulaConcluida', handler)
+    return () => window.removeEventListener('aulaConcluida', handler)
   }, [])
 
   return (
