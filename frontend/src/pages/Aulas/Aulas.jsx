@@ -42,9 +42,10 @@ export default function Aulas() {
 
       setSalvo(true)
 
-      // Notifica outras partes da UI (Cursos) para recarregar progresso
+      // Recarrega lista de cursos do backend e notifica a UI com o dataset completo
       try {
-        const detail = { cursoId: Number(cursoId), concluidasCount: res?.data?.concluidasCount ?? null }
+        const cursosRes = await getCursos()
+        const detail = { cursos: cursosRes.data, cursoId: Number(cursoId), concluidasCount: res?.data?.concluidasCount ?? null }
         window.dispatchEvent(new CustomEvent('aulaConcluida', { detail }))
       } catch (e) { console.warn('Não foi possível emitir evento de conclusão', e) }
 

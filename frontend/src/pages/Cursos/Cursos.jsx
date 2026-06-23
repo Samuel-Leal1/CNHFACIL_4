@@ -21,6 +21,11 @@ export default function Cursos() {
     const handler = (e) => {
       try {
         const detail = e?.detail || null
+        if (detail && Array.isArray(detail.cursos)) {
+          // Se o evento trouxe a lista completa, substitui diretamente
+          setCursos(detail.cursos)
+          return
+        }
         if (detail && typeof detail.cursoId === 'number' && detail.concluidasCount != null) {
           // Atualiza somente o curso afetado para resposta instantânea
           setCursos(prev => prev.map(c => {
