@@ -26,11 +26,12 @@ export default function MainLayout() {
   return (
     <div className="layout">
       <aside className="sidebar">
-        <div className="sidebar-logo">
-          <div className="logo-mark">
-            <div className="logo-icon">🚗</div>
-            <div><span>CNH</span> <em>Fácil</em></div>
-          </div>
+        <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'center', padding: '14px 16px' }}>
+          <img
+            src="https://i.postimg.cc/zbX1SvHr/image.png"
+            alt="CNH Fácil"
+            style={{ maxHeight: 52, maxWidth: '100%', objectFit: 'contain' }}
+          />
         </div>
 
         <nav className="sidebar-nav">

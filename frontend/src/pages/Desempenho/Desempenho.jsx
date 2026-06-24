@@ -27,27 +27,29 @@ export default function Desempenho() {
     getDesempenho().then(r => {
       const src = r.data || {}
 
-      // Mapeia o formato do backend para o que a UI espera
-      const totalQuestoes = src.questoesRespondidas ?? src.resumo?.questoesRespondidas ?? 0
-      const acertos = src.mediaAcertos ?? src.resumo?.mediaAcertos ?? 0
-      const taxa = typeof src.mediaAcertos === 'number' ? src.mediaAcertos : src.melhorDesempenho ?? 0
+      const totalQuestoes = src.questoesRespondidas ?? 0
+      const acertos = src.totalAcertos ?? 0
+      const taxa = src.mediaAcertos ?? 0
 
-      const desempenhoPorMateria = src.desempenhoPorMateria || src.resumo?.desempenhoPorMateria || {}
       const colorMap = {
         'Legislação de Trânsito': 'bar-green',
-        'Direção Defensiva': 'bar-navy',
-        'Primeiros Socorros': 'bar-yellow',
-        'Meio Ambiente e Mecânica': 'bar-red'
+        'Direção Defensiva':      'bar-navy',
+        'Primeiros Socorros':     'bar-yellow',
+        'Meio Ambiente e Cidadania': 'bar-red',
+        'Mecânica Básica':        'bar-red',
       }
-      const topicos = Object.keys(desempenhoPorMateria).length > 0
+      const desempenhoPorMateria = src.desempenhoPorMateria || {}
+      const topicos = Object.entries(desempenhoPorMateria).length > 0
         ? Object.entries(desempenhoPorMateria).map(([nome, pct]) => ({ nome, pct, cor: colorMap[nome] || 'bar-navy' }))
-        : (src.topicos || [])
+        : MOCK.topicos
 
-      const hist = src.historico || src.historicoSimulados || []
-      const simulados = hist.slice(-4).map((h, i) => ({
-        label: h.titulo ?? `Sim. ${h.id ?? i+1}`,
-        pct: h.notaPercent ?? h.nota ?? 0
-      }))
+      const hist = src.historico || []
+      const simulados = hist.length > 0
+        ? hist.slice(-4).map((h, i) => ({
+            label: h.titulo ? h.titulo.replace(/^Simulado\s*[-–]\s*/i, '').slice(0, 12) : `Sim. ${i + 1}`,
+            pct: h.notaPercent ?? h.nota ?? 0
+          }))
+        : MOCK.simulados
 
       setData({ totalQuestoes, acertos, taxa, topicos, simulados })
     }).catch(() => {})

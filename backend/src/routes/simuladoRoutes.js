@@ -1,5 +1,6 @@
 import express from 'express';
 import { gerarSimulado, enviarSimulado } from '../controllers/simuladoController.js';
+import { tokenOpcional } from '../middlewares/autenticacaoMiddleware.js';
 
 const router = express.Router();
 
@@ -34,7 +35,7 @@ const router = express.Router();
  *       200:
  *         description: Simulado gerado com sucesso
  */
-router.post('/gerar', gerarSimulado);
+router.post('/gerar', tokenOpcional, gerarSimulado);
 
 /**
  * @swagger
@@ -65,14 +66,14 @@ router.post('/gerar', gerarSimulado);
  *       200:
  *         description: Correção realizada com sucesso
  */
-router.post('/enviar', enviarSimulado);
+router.post('/enviar', tokenOpcional, enviarSimulado);
 
 // -------------------------------------------------------
 // Aliases que o frontend utiliza
 // /api/simulados/iniciar   → mesmo que /gerar
 // /api/simulados/finalizar → mesmo que /enviar
 // -------------------------------------------------------
-router.post('/iniciar', gerarSimulado);
-router.post('/finalizar', enviarSimulado);
+router.post('/iniciar', tokenOpcional, gerarSimulado);
+router.post('/finalizar', tokenOpcional, enviarSimulado);
 
 export default router;

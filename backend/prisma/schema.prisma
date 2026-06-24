@@ -38,11 +38,28 @@ model Aluno {
   aluno_status_aluno         String?   @default("ativo")
 
   // Relacionamentos
-  usuario                    Usuario         @relation(fields: [aluno_id], references: [usuario_id], onDelete: Cascade)
+  usuario                    Usuario                    @relation(fields: [aluno_id], references: [usuario_id], onDelete: Cascade)
   cursos                     AlunoCurso[]
   simulados                  AlunoSimulado[]
+  aulas                      AlunoAula[]
+  categorias                 AlunoCategoriaDesempenho[]
 
   @@map("aluno")
+}
+
+// ======================================================
+// 7. DESEMPENHO POR CATEGORIA (calculado questão a questão)
+// ======================================================
+model AlunoCategoriaDesempenho {
+  aluno_id  Int
+  categoria String
+  acertos   Int    @default(0)
+  total     Int    @default(0)
+
+  aluno     Aluno  @relation(fields: [aluno_id], references: [aluno_id])
+
+  @@id([aluno_id, categoria])
+  @@map("aluno_categoria_desempenho")
 }
 
 model Instrutor {
@@ -124,6 +141,9 @@ model AlunoSimulado {
   aluno_id                       Int
   simulado_id                    Int
   aluno_simulado_nota_obtida     Decimal?
+  aluno_simulado_acertos         Int?
+  aluno_simulado_total           Int?
+  aluno_simulado_tentativas      Int       @default(1)
   aluno_simulado_data_realizacao DateTime? @default(now())
 
   // Relacionamentos
@@ -167,8 +187,25 @@ model Aula {
   aula_criado_em             DateTime? @default(now())
   aula_atualizado_em         DateTime? @default(now()) @updatedAt
 
-  // Relacionamento
+  // Relacionamentos
   curso                      Curso     @relation(fields: [curso_id], references: [curso_id], onDelete: Cascade)
+  alunos                     AlunoAula[]
 
   @@map("aula")
+}
+
+// ======================================================
+// 6. PROGRESSO DE AULAS POR ALUNO
+// ======================================================
+model AlunoAula {
+  aluno_id          Int
+  aula_id           Int
+  concluida_em      DateTime? @default(now())
+  duracao_assistida Int?
+
+  aluno             Aluno @relation(fields: [aluno_id], references: [aluno_id])
+  aula              Aula  @relation(fields: [aula_id], references: [aula_id])
+
+  @@id([aluno_id, aula_id])
+  @@map("aluno_aula")
 }

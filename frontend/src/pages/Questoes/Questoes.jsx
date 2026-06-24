@@ -69,7 +69,7 @@ export default function Questoes() {
   }
 
   async function handleFinalizar() {
-    if (simuladoId) await finalizarSimulado(simuladoId, respostas).catch(() => {})
+    if (simuladoId) await finalizarSimulado(simuladoId, respostas, materia).catch(() => {})
     navigate('/desempenho')
   }
 

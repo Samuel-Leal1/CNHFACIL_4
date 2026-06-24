@@ -12,43 +12,64 @@ export default function Perfil() {
   const [form, setForm] = useState({
     nome: '', email: '', cpf: '', celular: '', novaSenha: '', confirmarSenha: ''
   })
+  const [perfilOriginal, setPerfilOriginal] = useState({})
+  const [categoria, setCategoria] = useState('')
+  const [userId, setUserId] = useState('')
   const [autoescola, setAutoescola] = useState(null)
   const [saved, setSaved] = useState(false)
+  const [erro, setErro] = useState('')
 
   useEffect(() => {
     getPerfil().then(r => {
       const p = r.data
-      setForm(f => ({
-        ...f,
-        nome: p.nome || '',
-        email: p.email || '',
-        cpf: p.cpf || '',
-        celular: p.celular || '',
-      }))
+      const dados = {
+        nome: p.usuario_nome || '',
+        email: p.usuario_email || '',
+        cpf: p.usuario_cpf || '',
+        celular: p.usuario_telefone || '',
+      }
+      setForm(f => ({ ...f, ...dados }))
+      setPerfilOriginal(dados)
+      setCategoria(p.aluno?.aluno_categoria_pretendida || '')
+      setUserId(p.usuario_id || '')
       setAutoescola(p.autoescola || null)
     }).catch(() => {
-      // fallback do contexto
-      setForm(f => ({
-        ...f,
-        nome: user?.nome || '',
-        email: user?.email || '',
-        cpf: user?.cpf || '',
-      }))
+      const dados = {
+        nome: user?.usuario_nome || user?.nome || '',
+        email: user?.usuario_email || user?.email || '',
+        cpf: user?.usuario_cpf || user?.cpf || '',
+        celular: user?.usuario_telefone || '',
+      }
+      setForm(f => ({ ...f, ...dados }))
+      setPerfilOriginal(dados)
     })
   }, [])
 
   function handleChange(e) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+    setErro('')
   }
 
   async function handleSave(e) {
     e.preventDefault()
-    await updatePerfil(form).catch(() => {})
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    setErro('')
+    try {
+      await updatePerfil({
+        nome: form.nome,
+        email: form.email !== perfilOriginal.email ? form.email : undefined,
+        telefone: form.celular,
+        novaSenha: form.novaSenha || undefined,
+      })
+      setPerfilOriginal(prev => ({ ...prev, nome: form.nome, email: form.email, celular: form.celular }))
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } catch (err) {
+      const msg = err?.response?.data?.erro || 'Erro ao salvar. Tente novamente.'
+      setErro(msg)
+    }
   }
 
-  const nome = form.nome || user?.nome || 'Usuário'
+  const nome = form.nome || user?.usuario_nome || user?.nome || 'Usuário'
 
   return (
     <>
@@ -61,10 +82,12 @@ export default function Perfil() {
               <div className="perfil-avatar">{initials(nome)}</div>
               <div>
                 <div className="perfil-name">{nome}</div>
-                <div className="perfil-id">Aluno ID: #{user?.id || '849.204'}</div>
-                <div style={{ marginTop: 8 }}>
-                  <span className="perfil-cat">CATEGORIA: A E B (CARRO/MOTO)</span>
-                </div>
+                <div className="perfil-id">Aluno ID: #{userId || '—'}</div>
+                {categoria && (
+                  <div style={{ marginTop: 8 }}>
+                    <span className="perfil-cat">CATEGORIA: {categoria.toUpperCase()}</span>
+                  </div>
+                )}
               </div>
 
               {autoescola && (
@@ -115,6 +138,9 @@ export default function Perfil() {
                 </div>
               </div>
 
+              {erro && (
+                <div style={{ color: '#dc2626', fontSize: 13, marginBottom: 8 }}>{erro}</div>
+              )}
               <button className="btn-save" type="submit">
                 {saved ? 'SALVO ✓' : 'SALVAR ALTERAÇÕES'}
               </button>

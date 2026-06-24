@@ -1,24 +1,12 @@
 import express from 'express';
-import { listarAulas } from '../controllers/aulaController.js';
+import { listarAulas, listarCursos, listarAulasCurso, concluirAula } from '../controllers/aulaController.js';
+import { verificarToken } from '../middlewares/autenticacaoMiddleware.js';
 
 const router = express.Router();
 
-/**
- * @swagger
- * /api/aulas:
- *   get:
- *     summary: Lista todas as aulas e progresso por matéria do aluno
- *     tags: [Aulas]
- *     responses:
- *       200:
- *         description: Lista de matérias e aulas assistidas obtida com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- */
 router.get('/', listarAulas);
+router.get('/cursos', verificarToken, listarCursos);
+router.get('/curso/:cursoId', verificarToken, listarAulasCurso);
+router.post('/:aulaId/concluir', verificarToken, concluirAula);
 
 export default router;

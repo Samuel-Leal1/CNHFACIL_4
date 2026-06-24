@@ -6,7 +6,7 @@ function initials(name = '') {
 
 export default function Topbar({ title }) {
   const { user } = useAuth()
-  const nome = user?.nome || user?.name || 'Usuário'
+  const nome = user?.usuario_nome || user?.nome || user?.name || 'Usuário'
   const perfil = user?.perfil === 'admin' ? 'Gestor Geral' : 'Aluno'
 
   return (

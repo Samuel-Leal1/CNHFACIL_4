@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Topbar from '../../components/Topbar'
+import { getInstrutores } from '../../services/api'
 
-const INSTRUTORES = [
+const INSTRUTORES_FALLBACK = [
   {
     id: 1, nome: 'Roberto Almeida', avaliacao: 4.9, avaliacoes: 124,
     categorias: ['B'], veiculo: 'VW Gol (Manual)',
@@ -44,8 +45,19 @@ const CAT_CLASS = { A: 'a', B: 'b', C: 'b', D: 'd', E: 'd' }
 
 export default function Instrutores() {
   const [busca, setBusca] = useState('')
+  const [instrutores, setInstrutores] = useState(INSTRUTORES_FALLBACK)
 
-  const filtrados = INSTRUTORES.filter(i =>
+  useEffect(() => {
+    getInstrutores()
+      .then(r => {
+        if (Array.isArray(r.data) && r.data.length > 0) {
+          setInstrutores(r.data)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const filtrados = instrutores.filter(i =>
     i.nome.toLowerCase().includes(busca.toLowerCase()) ||
     i.veiculo.toLowerCase().includes(busca.toLowerCase()) ||
     i.categorias.some(c => c.toLowerCase().includes(busca.toLowerCase()))
@@ -75,7 +87,10 @@ export default function Instrutores() {
                 <div>
                   <div className="instrutor-name">{inst.nome}</div>
                   <div className="instrutor-stars">
-                    ⭐ <span className="instrutor-rating">{inst.avaliacao} ({inst.avaliacoes} avaliações)</span>
+                    ⭐ <span className="instrutor-rating">
+                      {inst.avaliacao}
+                      {inst.avaliacoes > 0 && ` (${inst.avaliacoes} avaliações)`}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -89,14 +104,20 @@ export default function Instrutores() {
               <div className="instrutor-veiculo">🚗 <span>Veículo: <strong>{inst.veiculo}</strong></span></div>
               <div className="instrutor-bio">💬 <span>{inst.bio}</span></div>
 
-              <a
-                href={`https://wa.me/55${inst.whatsapp}`}
-                target="_blank"
-                rel="noreferrer"
-                className="btn-whatsapp"
-              >
-                💬 Entrar em Contato
-              </a>
+              {inst.whatsapp ? (
+                <a
+                  href={`https://wa.me/55${inst.whatsapp}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-whatsapp"
+                >
+                  💬 Entrar em Contato
+                </a>
+              ) : (
+                <button className="btn-whatsapp" disabled style={{ opacity: 0.5, cursor: 'default' }}>
+                  💬 Contato não disponível
+                </button>
+              )}
             </div>
           ))}
         </div>

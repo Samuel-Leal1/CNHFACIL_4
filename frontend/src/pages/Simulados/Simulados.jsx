@@ -29,10 +29,10 @@ export default function Simulados() {
         const perfNormalizado = Object.fromEntries(
           Object.entries(perf).map(([k, v]) => [normalizeString(k), v])
         )
-        setMaterias(MATERIAS.map(m => ({
-          ...m,
-          progresso: perfNormalizado[normalizeString(m.nome)] ?? m.progresso
-        })))
+        setMaterias(MATERIAS.map(m => {
+          const real = perfNormalizado[normalizeString(m.nome)]
+          return { ...m, progresso: real !== undefined ? real : m.progresso }
+        }))
       })
       .catch(() => {})
   }, [])

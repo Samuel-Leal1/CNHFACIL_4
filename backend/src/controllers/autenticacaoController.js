@@ -46,19 +46,46 @@ export const login = async (req, res) => {
 };
 
 export const registro = async (req, res) => {
-    const { nome, email, senha, cargo, categoria } = req.body;
+    const { nome, email, senha, cpf, cargo, credencial, categoriaCnh, valorAula } = req.body;
 
     if (!nome || !email || !senha) {
         return res.status(400).json({ erro: 'Nome, e-mail e senha são obrigatórios.' });
     }
 
-    try {
-        const emailExistente = await prisma.usuario.findUnique({
-            where: { usuario_email: email.toLowerCase() },
-        });
+    // Sanitiza CPF
+    const cpfLimpo = (cpf || '').replace(/\D/g, '');
+    if (!cpfLimpo || cpfLimpo.length !== 11) {
+        return res.status(400).json({ erro: 'CPF inválido. Informe os 11 dígitos.' });
+    }
 
-        if (emailExistente) {
-            return res.status(400).json({ erro: 'E-mail já cadastrado.' });
+    const nivelAcesso = (cargo || 'aluno').toLowerCase();
+
+    // Validação extra para instrutores
+    if (nivelAcesso === 'instrutor') {
+        if (!credencial?.trim()) {
+            return res.status(400).json({ erro: 'Número de credencial é obrigatório para instrutores.' });
+        }
+        if (!valorAula || Number(valorAula) <= 0) {
+            return res.status(400).json({ erro: 'Valor de aula inválido.' });
+        }
+    }
+
+    try {
+        const [emailExistente, cpfExistente] = await Promise.all([
+            prisma.usuario.findUnique({ where: { usuario_email: email.toLowerCase() } }),
+            prisma.usuario.findUnique({ where: { usuario_cpf: cpfLimpo } }),
+        ]);
+
+        if (emailExistente) return res.status(400).json({ erro: 'E-mail já cadastrado.' });
+        if (cpfExistente)   return res.status(400).json({ erro: 'CPF já cadastrado.' });
+
+        if (nivelAcesso === 'instrutor' && credencial) {
+            const credencialExistente = await prisma.instrutor.findUnique({
+                where: { instrutor_numero_credencial: credencial.trim() },
+            });
+            if (credencialExistente) {
+                return res.status(400).json({ erro: 'Número de credencial já cadastrado.' });
+            }
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -67,18 +94,30 @@ export const registro = async (req, res) => {
         const novoUsuario = await prisma.usuario.create({
             data: {
                 usuario_nome: nome,
-                usuario_cpf: categoria ? categoria.slice(0, 11).padEnd(11, '0') : '00000000000',
+                usuario_cpf: cpfLimpo,
                 usuario_email: email.toLowerCase(),
                 usuario_senha: senhaHash,
-                usuario_nivel_acesso: (cargo || 'ALUNO').toLowerCase(),
+                usuario_nivel_acesso: nivelAcesso,
             },
         });
+
+        // Cria o registro específico do instrutor vinculado ao mesmo ID
+        if (nivelAcesso === 'instrutor') {
+            await prisma.instrutor.create({
+                data: {
+                    instrutor_id:                novoUsuario.usuario_id,
+                    instrutor_numero_credencial: credencial.trim(),
+                    instrutor_categoria_cnh:     (categoriaCnh || 'B').toUpperCase(),
+                    instrutor_valor_aula:        parseFloat(valorAula),
+                },
+            });
+        }
 
         const { usuario_senha: _, ...usuarioRetorno } = novoUsuario;
 
         return res.status(201).json({
             mensagem: 'Usuário registrado com sucesso',
-            usuario: usuarioRetorno
+            usuario: usuarioRetorno,
         });
     } catch (erro) {
         console.error('Erro no registro:', erro);

@@ -110,12 +110,12 @@ export const responderQuestao = (simuladoId, questaoId, resposta) =>
   Promise.resolve({ data: { ok: true } })
 
 // Finalizar simulado: o backend espera um array de respostas em { questionId, selectedOption }
-export const finalizarSimulado = (simuladoId, respostas = {}) => {
+export const finalizarSimulado = (simuladoId, respostas = {}, materia = null) => {
   const rows = Object.entries(respostas).map(([questionId, letra]) => ({
     questionId: Number(questionId),
     selectedOption: ['A','B','C','D'].indexOf(letra),
   }))
-  return api.post('/simulados/finalizar', { respostas: rows })
+  return api.post('/simulados/finalizar', { respostas: rows, materia })
 }
 
 // ---- Desempenho ----
@@ -129,6 +129,9 @@ export const getQuestoes = (materia) =>
 // ---- Veículos / Instrutores ----
 export const getVeiculos = () =>
   api.get('/veiculo')
+
+export const getInstrutores = () =>
+  api.get('/instrutores')
 
 // ---- Admin ----
 export const getAlunos = () =>
