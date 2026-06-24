@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Topbar from '../../components/Topbar'
-import { getAulas, concluirAula } from '../../services/api'
+import { getAulas, concluirAula, getCursos } from '../../services/api'
 
 export default function Aulas() {
   const { cursoId } = useParams()
@@ -78,17 +78,47 @@ export default function Aulas() {
         </button>
 
         <div className="aulas-layout" style={{ marginTop: 12 }}>
-          {/* Player */}
+          {/* Player / Conteúdo */}
           <div>
-            <div className="video-player">
-              <div className="video-play-btn">▶</div>
-              <div className="video-caption">
-                {atual
-                  ? `Assistindo agora: ${atual.titulo}`
-                  : 'Selecione uma aula para começar'}
+            {atual?.videoUrl ? (
+              <div style={{ borderRadius: 12, overflow: 'hidden', background: '#000', lineHeight: 0 }}>
+                <iframe
+                  width="100%"
+                  height="400"
+                  src={atual.videoUrl}
+                  title={atual.titulo}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{ display: 'block' }}
+                />
               </div>
-            </div>
-            {atual && atual.descricao && (
+            ) : atual?.conteudo ? (
+              <div style={{ background: '#fff', borderRadius: 12, padding: '24px 28px', boxShadow: '0 1px 4px rgba(0,0,0,.08)', lineHeight: 1.75 }}>
+                <h3 style={{ marginTop: 0, marginBottom: 16, color: '#18337c', fontSize: 18 }}>{atual.titulo}</h3>
+                {atual.conteudo.split('\n\n').map((bloco, i) =>
+                  bloco.startsWith('### ') ? (
+                    <h4 key={i} style={{ marginTop: 20, marginBottom: 6, color: '#1a2b4a', fontSize: 15 }}>
+                      {bloco.replace('### ', '')}
+                    </h4>
+                  ) : (
+                    <p key={i} style={{ margin: '0 0 12px', color: '#374151', fontSize: 14, whiteSpace: 'pre-line' }}>
+                      {bloco}
+                    </p>
+                  )
+                )}
+              </div>
+            ) : (
+              <div className="video-player">
+                <div className="video-play-btn">▶</div>
+                <div className="video-caption">
+                  {atual
+                    ? `Assistindo agora: ${atual.titulo}`
+                    : 'Selecione uma aula para começar'}
+                </div>
+              </div>
+            )}
+            {atual && atual.descricao && !atual.conteudo && (
               <p style={{ marginTop: 12, color: 'var(--gray-500)', fontSize: 14 }}>
                 {atual.descricao}
               </p>

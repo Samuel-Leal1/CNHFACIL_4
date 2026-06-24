@@ -83,6 +83,8 @@ export const listarAulasCurso = async (req, res) => {
                 descricao: a.aula_descricao || '',
                 ordem: a.aula_ordem,
                 duracao: a.aula_duracao_minutos,
+                videoUrl: a.aula_url_video || null,
+                conteudo: a.aula_conteudo_texto || null,
                 status,
                 concluida,
             };

@@ -65,6 +65,25 @@ Projeto CNHFácil com estrutura monorepo leve, contendo backend em Node.js/Expre
    npm run dev
    ```
 
+## O que o seed carrega
+
+Após `npm run prisma:seed` (executado na pasta `backend/`), o banco conterá:
+
+| Categoria | Dados |
+|---|---|
+| Usuários | `admin@cnhfacil.com` (senha: `admin123`) e `aluno@cnhfacil.com` (senha: `aluno123`) |
+| Simulados | 5 módulos temáticos com 10 questões cada (50 no total) |
+| Cursos | 5 cursos teóricos com aulas em vídeo e texto |
+
+**Cursos e aulas:**
+- **Legislação de Trânsito** — 5 aulas (1 vídeo + 4 textos)
+- **Direção Defensiva** — 5 aulas (1 vídeo + 4 textos)
+- **Noções de Mecânica** — 4 aulas (1 vídeo + 3 textos)
+- **Meio Ambiente e Cidadania** — 4 aulas (1 vídeo + 3 textos)
+- **Primeiros Socorros** — 4 aulas (1 vídeo + 3 textos)
+
+A primeira aula de cada curso exibe um vídeo do YouTube incorporado; as demais apresentam conteúdo teórico formatado diretamente na plataforma.
+
 ## Rotas principais
 
 - Backend: `http://localhost:3000`
