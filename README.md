@@ -36,7 +36,15 @@ Projeto CNHFácil com estrutura monorepo leve, contendo backend em Node.js/Expre
    ```bash
    npm run prisma:generate
    ```
-5. Rode as migrações e o seed:
+5. Configure o banco e popule os dados:
+
+   **Em uma nova máquina (primeira vez):**
+   ```bash
+   npm run prisma:deploy
+   ```
+   Esse comando aplica as migrations existentes e já executa o seed automaticamente (cria as tabelas e insere usuários, questões, cursos e aulas).
+
+   **Durante o desenvolvimento (para criar novas migrations):**
    ```bash
    npm run prisma:migrate
    npm run prisma:seed
