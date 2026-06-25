@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ======================================================
+// 1. USUARIO (G4 - Base para Admin, Aluno e Instrutor)
+// ======================================================
+model Usuario {
+  usuario_id           Int       @id @default(autoincrement())
+  usuario_nome         String
+  usuario_cpf          String    @unique
+  usuario_email        String    @unique
+  usuario_senha        String
+  usuario_nivel_acesso String    @default("aluno")
+  usuario_telefone     String?
+  usuario_foto_perfil  String?
+  usuario_criado_em    DateTime? @default(now())
+
+  // Relacionamentos 1:1
+  aluno                Aluno?
+  instrutor            Instrutor?
+
+  @@map("usuario")
+}
+
+// ======================================================
+// 2. ESPECIALIZAÇÕES (Relacionamento 1:1)
+// ======================================================
+model Aluno {
+  aluno_id                   Int       @id
+  aluno_data_nascimento      DateTime
+  aluno_categoria_pretendida String
+  aluno_status_aluno         String?   @default("ativo")
+
+  // Relacionamentos
+  usuario                    Usuario                    @relation(fields: [aluno_id], references: [usuario_id], onDelete: Cascade)
+  cursos                     AlunoCurso[]
+  simulados                  AlunoSimulado[]
+  aulas                      AlunoAula[]
+  categorias                 AlunoCategoriaDesempenho[]
+
+  @@map("aluno")
+}
+
+// ======================================================
+// 7. DESEMPENHO POR CATEGORIA (calculado questão a questão)
+// ======================================================
+model AlunoCategoriaDesempenho {
+  aluno_id  Int
+  categoria String
+  acertos   Int    @default(0)
+  total     Int    @default(0)
+
+  aluno     Aluno  @relation(fields: [aluno_id], references: [aluno_id])
+
+  @@id([aluno_id, categoria])
+  @@map("aluno_categoria_desempenho")
+}
+
+model Instrutor {
+  instrutor_id                Int       @id
+  instrutor_numero_credencial String    @unique
+  instrutor_categoria_cnh     String
+  instrutor_valor_aula        Decimal
+
+  // Relacionamentos
+  usuario                     Usuario   @relation(fields: [instrutor_id], references: [usuario_id], onDelete: Cascade)
+  veiculos                    Veiculo[]
+
+  @@map("instrutor")
+}
+
+// ======================================================
+// 3. SIMULADO E QUESTÕES (G2)
+// ======================================================
+model Simulado {
+  simulado_id          Int       @id @default(autoincrement())
+  simulado_titulo      String
+  simulado_nota_minima Decimal
+
+  // Relacionamentos
+  questoes             Questao[]
+  alunos               AlunoSimulado[]
+
+  @@map("simulado")
+}
+
+model Questao {
+  questao_id            Int       @id @default(autoincrement())
+  simulado_id           Int
+  questao_enunciado     String
+  questao_alternativa_a String
+  questao_alternativa_b String
+  questao_alternativa_c String
+  questao_alternativa_d String
+  questao_letra_correta String
+  questao_categoria     String?
+
+  // Relacionamento
+  simulado              Simulado  @relation(fields: [simulado_id], references: [simulado_id], onDelete: Cascade)
+
+  @@map("questao")
+}
+
+// ======================================================
+// 4. CURSOS E RELACIONAMENTOS N:N
+// ======================================================
+model Curso {
+  curso_id            Int       @id @default(autoincrement())
+  curso_titulo        String
+  curso_carga_horaria Int
+  curso_valor         Decimal?
+
+  // Relacionamentos
+  alunos              AlunoCurso[]
+  aulas               Aula[]
+
+  @@map("curso")
+}
+
+model AlunoCurso {
+  aluno_id                   Int
+  curso_id                   Int
+  aluno_curso_data_matricula DateTime? @default(now())
+
+  // Relacionamentos
+  aluno                      Aluno     @relation(fields: [aluno_id], references: [aluno_id])
+  curso                      Curso     @relation(fields: [curso_id], references: [curso_id])
+
+  // Chave primária composta
+  @@id([aluno_id, curso_id])
+  @@map("aluno_curso")
+}
+
+model AlunoSimulado {
+  aluno_id                       Int
+  simulado_id                    Int
+  aluno_simulado_nota_obtida     Decimal?
+  aluno_simulado_acertos         Int?
+  aluno_simulado_total           Int?
+  aluno_simulado_tentativas      Int       @default(1)
+  aluno_simulado_data_realizacao DateTime? @default(now())
+
+  // Relacionamentos
+  aluno                          Aluno     @relation(fields: [aluno_id], references: [aluno_id])
+  simulado                       Simulado  @relation(fields: [simulado_id], references: [simulado_id])
+
+  // Chave primária composta
+  @@id([aluno_id, simulado_id])
+  @@map("aluno_simulado")
+}
+
+// ======================================================
+// 5. VEÍCULOS E AULAS (G1 e G4)
+// ======================================================
+model Veiculo {
+  veiculo_id           Int       @id @default(autoincrement())
+  instrutor_id         Int
+  veiculo_placa        String    @unique
+  veiculo_marca_modelo String?
+
+  // Relacionamento
+  instrutor            Instrutor @relation(fields: [instrutor_id], references: [instrutor_id])
+
+  @@map("veiculo")
+}
+
+model Aula {
+  aula_id                    Int       @id @default(autoincrement())
+  curso_id                   Int
+  aula_titulo                String
+  aula_descricao             String?
+  aula_ordem                 Int
+  aula_conteudo_texto        String?
+  aula_url_video             String?
+  aula_arquivo_slide         String?
+  aula_arquivo_pdf           String?
+  aula_material_complementar String?
+  aula_miniatura             String?
+  aula_duracao_minutos       Int?
+  aula_status_aula           String?   @default("publicada")
+  aula_criado_em             DateTime? @default(now())
+  aula_atualizado_em         DateTime? @default(now()) @updatedAt
+
+  // Relacionamentos
+  curso                      Curso     @relation(fields: [curso_id], references: [curso_id], onDelete: Cascade)
+  alunos                     AlunoAula[]
+
+  @@map("aula")
+}
+
+// ======================================================
+// 6. PROGRESSO DE AULAS POR ALUNO
+// ======================================================
+model AlunoAula {
+  aluno_id          Int
+  aula_id           Int
+  concluida_em      DateTime? @default(now())
+  duracao_assistida Int?
+
+  aluno             Aluno @relation(fields: [aluno_id], references: [aluno_id])
+  aula              Aula  @relation(fields: [aula_id], references: [aula_id])
+
+  @@id([aluno_id, aula_id])
+  @@map("aluno_aula")
+}
